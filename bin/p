@@ -1,0 +1,176 @@
+#!/usr/bin/env sh
+
+# Library version
+
+VERSION="0.1.0"
+PHPFARM_DIR=$HOME/.phpfarm
+
+#
+# Log the given <msg ...>
+#
+
+log() {
+  printf "\033[90m...\033[0m $@\n"
+}
+
+#
+# Exit with the given <msg ...>
+#
+
+abort() {
+  printf "\033[31mError: $@\033[0m\n" && exit 1
+}
+
+# setup
+
+test -d $PHPFARM_DIR || git clone git://git.code.sf.net/p/phpfarm/code $PHPFARM_DIR
+
+
+if ! test -d $PHPFARM_DIR; then
+  abort "Failed to install phpfarm into ($PHPFARM_DIR)\nPlease, try to resolve issues above and retry."
+fi
+
+#
+# Output usage information.
+#
+
+display_help() {
+  cat <<-help
+
+  Usage: p [options] [COMMAND] [config]
+
+  Commands:
+
+    p                            Output versions installed
+    p <version> [config ...]     Install and/or use php <version>
+    p use <version> [args ...]   Execute php <version> with [args ...]
+    p bin <version> [--cgi]      Output bin path for <version>
+    p rm <version ...>           Remove the given version(s)
+
+  Options:
+
+    -V, --version   Output current version of p
+    -h, --help      Display help information
+
+  Aliases:
+
+    -       rm
+    which   bin
+    use     as
+
+help
+  exit 0
+}
+
+#
+# Output p version.
+#
+
+display_p_version() {
+  echo $VERSION && exit 0
+}
+
+#
+# Display php versions installed
+#
+
+display_versions() {
+  for dir in $PHPFARM_DIR/inst/*; do
+    local version=${dir##*/}
+    if test "$version" != "bin"; then
+      printf "    $version\n"
+    fi
+  done
+}
+
+#
+# Install php <version> [config ...]
+#
+
+install_php() {
+  local version=$1; shift
+  local config=$@
+
+  # remove "v"
+  version=${version#v}
+
+  # check
+  local dir=$PHPFARM_DIR/inst/php-$version
+  if test -d $dir; then
+    abort "PHP-$version already installed!"
+  # install
+  else
+    cd $PHPFARM_DIR/src \
+      && ./compile.sh $version
+  fi
+}
+
+#
+# Remove <version ...>
+#
+
+remove_version() {
+  test -z $1 && abort "version(s) required"
+  local version=${1#v}
+  while test $# -ne 0; do
+    rm -rf $PHPFARM_DIR/inst/php-$version
+    find -L $PHPFARM_DIR/inst/bin -type l -delete
+    shift
+  done
+}
+
+#
+# Output bin path for <version>
+#
+
+display_bin_path_for_version() {
+  test -z $1 && abort "version required"
+  case $2 in
+    -c|--cgi) local php="php-cgi" ;;
+    *) local php="php" ;;
+  esac
+  local version=${1#v}
+  local bin=$PHPFARM_DIR/inst/bin/$php-$version
+  if test -f $bin; then
+    printf $bin
+  else
+    abort "$1 is not installed"
+  fi
+}
+
+#
+# Execute the given <version> of php
+# with [args ...]
+#
+
+execute_with_version() {
+  test -z $1 && abort "version required"
+  local version=${1#v}
+  local bin=$PHPFARM_DIR/inst/bin/php-$version
+
+  shift # remove version
+
+  if test -f $bin; then
+    $bin $@
+  else
+    abort "$1 is not installed"
+  fi
+}
+
+# Handle arguments
+
+if test $# -eq 0; then
+  display_versions
+else
+  while test $# -ne 0; do
+    case $1 in
+      -V|--version) display_p_version ;;
+      -h|--help|help) display_help ;;
+      bin|which) shift; display_bin_path_for_version $@; exit ;;
+      as|use) shift; execute_with_version $@; exit ;;
+      rm|-) remove_version $2; exit ;;
+      *) install_php $@; exit ;;
+    esac
+    shift
+  done
+fi
