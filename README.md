@@ -35,5 +35,24 @@ Output from p --help:
       which   bin
       use     as
 
+### Examples
+
+Display help information for php-5.4.0:
+
+    p use 5.4.0 --help
+
+Output 'hello,world' with php-5.3.10:
+
+    p use 5.3.10 -r 'print("hello,world!");'
+
+Execute script with php-5.3.9:
+
+    p use 5.3.9 -f fooBar.php
+
+Set runtime variable for lighttpd:
+
+    PHPBIN=`p bin 5.3.10 --cgi` lighttpd -c my.conf
+
+
 [n]:https://github.com/visionmedia/n "Node version manager"
 [phpfarm]:http://sourceforge.net/p/phpfarm/code/ "PHP version manager"
