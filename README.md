@@ -49,7 +49,7 @@ Execute script with php-5.3.9:
 
     p use 5.3.9 -f fooBar.php
 
-Set runtime variable for lighttpd:
+Wrap full path to php-cgi-5.3.10 into runtime variable for usage with lighttpd:
 
     PHPBIN=`p bin 5.3.10 --cgi` lighttpd -c my.conf
 
