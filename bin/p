@@ -42,7 +42,7 @@ display_help() {
   Commands:
 
     p                            Output versions installed
-    p <version> [config ...]     Install and/or use php <version>
+    p <version> [config ...]     Install php <version>
     p use <version> [args ...]   Execute php <version> with [args ...]
     p bin <version> [--cgi]      Output bin path for <version>
     p rm <version ...>           Remove the given version(s)
