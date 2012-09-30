@@ -136,7 +136,7 @@ display_bin_path_for_version() {
   if test -f $bin; then
     printf $bin
   else
-    abort "$1 is not installed"
+    abort "$version is not installed"
   fi
 }
 
@@ -155,7 +155,7 @@ execute_with_version() {
   if test -f $bin; then
     $bin $@
   else
-    abort "$1 is not installed"
+    abort "$version is not installed"
   fi
 }
 
