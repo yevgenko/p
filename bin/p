@@ -42,7 +42,7 @@ display_help() {
   Commands:
 
     p                            Output versions installed
-    p <version> [config ...]     Install php <version>
+    p <version>                  Install or set as default php <version>
     p use <version> [args ...]   Execute php <version> with [args ...]
     p bin <version> [--cgi]      Output bin path for <version>
     p symlink <version>          Makes symbolic link to given version
@@ -73,14 +73,31 @@ display_p_version() {
 }
 
 #
+# Check for installed version, and populate $active
+#
+
+check_current_version() {
+  local php=$(cd -P -- "$(dirname -- "$0")" && pwd -P)/php
+  if test -h $php; then
+    active=`readlink $php`
+    active=${active##*/}
+  fi
+}
+
+#
 # Display php versions installed
 #
 
 display_versions() {
+  check_current_version
   for dir in $PHPFARM_DIR/inst/*; do
     local version=${dir##*/}
     if test "$version" != "bin"; then
-      printf "    $version\n"
+      if test "$version" = "$active"; then
+        printf " \033[32mo\033[0m $version\n"
+      else
+        printf "   $version\n"
+      fi
     fi
   done
 }
@@ -90,8 +107,7 @@ display_versions() {
 #
 
 install_php() {
-  local version=$1; shift
-  local config=$@
+  local version=$1;
 
   # remove "v"
   version=${version#v}
@@ -99,7 +115,8 @@ install_php() {
   # check
   local dir=$PHPFARM_DIR/inst/php-$version
   if test -d $dir; then
-    abort "PHP-$version already installed!"
+    log "php $version already installed, making it default php executable"
+    symlink_version $@
   # install
   else
     cd $PHPFARM_DIR/src \
