@@ -45,6 +45,7 @@ display_help() {
     p <version> [config ...]     Install php <version>
     p use <version> [args ...]   Execute php <version> with [args ...]
     p bin <version> [--cgi]      Output bin path for <version>
+    p symlink <version>          Makes symbolic link to given version
     p rm <version ...>           Remove the given version(s)
 
   Options:
@@ -57,6 +58,7 @@ display_help() {
     -       rm
     which   bin
     use     as
+    symlink ln
 
 help
   exit 0
@@ -157,6 +159,32 @@ execute_with_version() {
   fi
 }
 
+#
+# Makes symbolic link to given <version>
+#
+
+symlink_version() {
+  test -z $1 && abort "version required"
+  local version=${1#v}
+  local bin=$PHPFARM_DIR/inst/bin/php-$version
+  local ln=$(cd -P -- "$(dirname -- "$0")" && pwd -P)/php
+
+  shift # remove version
+
+  if test -f $bin; then
+    if test -h $ln; then
+      rm $ln
+    else
+      if test -f $ln; then
+        abort "$ln is not symlink"
+      fi
+    fi
+    ln -s $bin $ln
+  else
+    abort "$version is not installed"
+  fi
+}
+
 # Handle arguments
 
 if test $# -eq 0; then
@@ -168,6 +196,7 @@ else
       -h|--help|help) display_help ;;
       bin|which) shift; display_bin_path_for_version $@; exit ;;
       as|use) shift; execute_with_version $@; exit ;;
+      ln|symlink) shift; symlink_version $@; exit ;;
       rm|-) remove_version $2; exit ;;
       *) install_php $@; exit ;;
     esac
