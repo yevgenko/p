@@ -19,9 +19,10 @@ Output from p --help:
     Commands:
 
       p                            Output versions installed
-      p <version> [config ...]     Install php <version>
+      p <version>                  Install or set as default php <version>
       p use <version> [args ...]   Execute php <version> with [args ...]
       p bin <version> [--cgi]      Output bin path for <version>
+      p symlink <version>          Makes symbolic link to given version
       p rm <version ...>           Remove the given version(s)
 
     Options:
@@ -34,6 +35,8 @@ Output from p --help:
       -       rm
       which   bin
       use     as
+      symlink ln
+
 
 ### Examples
 
